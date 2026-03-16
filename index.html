@@ -1,365 +1,379 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>연속혈당측정기(CGM) 센서 외부막 설계 및 한계 극복 연구 보고서</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CGM 센서 외부막 설계 및 한계 극복 연구 보고서</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Chosen Palette: Clinical Slate & Blue Accent (bg-slate-50, text-slate-800, text-blue-600, bg-blue-500) -->
-    <!-- Application Structure Plan: 
-         This SPA is structured as a scientific technical report dashboard. 
-         1. Introduction/Overview: Sets the context.
-         2. Problem Analysis 1 (Channel Size): Uses an interactive bar chart to simulate how different channel size distributions affect sensor performance (interference vs. biofouling).
-         3. Problem Analysis 2 (Diffusion & Flow): Uses CSS grid-based diagrams to explain vertical vs. lateral flow issues in dense membranes.
-         4. Proposed Solution & Risk: Explains the 2-layer concept and its deformation risk.
-         5. Research & Countermeasures (The requested "Report"): Presents actionable engineering solutions to the deformation problem using interactive expandable cards.
-         This flow logically guides the user from the problem statement provided in the prompt to the requested researched solutions. -->
-    <!-- Visualization & Content Choices: 
-         - Channel Size Impact -> Goal: Compare performance metrics based on physical structure -> Viz: Interactive Bar Chart (Chart.js) -> Justification: Allows clear quantitative comparison of abstract concepts (selectivity vs. fouling).
-         - Diffusion Flow -> Goal: Explain physical movement of molecules -> Viz: CSS Grid block diagrams with Unicode arrows -> Justification: NO SVG constraint. CSS grids perfectly represent membrane layers and directional flow without external assets.
-         - Solutions Report -> Goal: Detail complex engineering methods -> Viz: Interactive Accordion Cards -> Justification: Keeps UI clean while allowing deep dives into technical text.
-    -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+<!-- Chosen Palette: Slate and Teal Accent (bg-slate-50, text-slate-800, text-teal-600, bg-teal-500) -->
+<!-- Application Structure Plan: 
+     The SPA is structured as a technical dashboard divided into three main analytical sections. 
+     1. Introduction: Sets the purpose of the report.
+     2. Channel Size Analysis: Uses an interactive Chart.js bar chart to let users explore how different channel size distributions affect interference and biofouling.
+     3. Flow Dynamics & Structural Dilemma: Employs CSS/HTML grid-based diagrams to visually explain the concepts of vertical/lateral flow, single dense membranes, and the structural collapse of dual-layer membranes.
+     4. Engineering Solutions: Presents researched solutions (Orthogonal Solvents, Cross-linking, Sacrificial Layers) in an interactive accordion format to solve the dual-layer collapse problem.
+     This structure logically guides the user from the fundamental problem to visual simulations, and finally to actionable engineering solutions. -->
+<!-- Visualization & Content Choices: 
+     - Channel Size Impact -> Goal: Compare performance tradeoffs -> Viz: Interactive Bar Chart -> Justification: Allows quantitative comparison of selectivity vs biofouling. Method: Chart.js (NO SVG).
+     - Flow & Collapse Dynamics -> Goal: Explain physical diffusion paths -> Viz: HTML/CSS Grid Diagrams with Unicode -> Justification: Clearly shows structural failure and flow blockage without relying on external image assets or SVGs.
+     - Solution Report -> Goal: Detail complex methods -> Viz: Interactive Accordion Cards -> Justification: Organizes text-heavy engineering solutions intuitively. -->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-    <style>
-        /* Essential Chart Container Styling */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            height: 300px;
-            max-height: 400px;
-        }
-        @media (min-width: 768px) {
-            .chart-container { height: 350px; }
-        }
-
-        /* Custom styling for CSS diagrams */
-        .membrane-layer { transition: all 0.3s ease; }
-        .flow-arrow { display: inline-block; animation: flowDown 2s infinite linear; }
-        @keyframes flowDown {
-            0% { transform: translateY(-5px); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(5px); opacity: 0; }
-        }
-    </style>
+<style>
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px;
+    max-height: 400px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 350px;
+    }
+}
+@keyframes pulse-opacity {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.flow-animate {
+    animation: pulse-opacity 2s infinite;
+}
+.collapse-target {
+    transition: all 0.5s ease-in-out;
+}
+.group:hover .collapse-target {
+    height: 0.5rem;
+    background-color: #f87171;
+}
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans leading-relaxed">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-6">
-            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">CGM 센서 외부막(Outer Membrane) 설계 최적화 연구</h1>
-            <p class="mt-2 text-slate-500 text-sm md:text-base">글루코스 확산 제어 한계 분석 및 이중 구조막 변형 극복 방안 보고서</p>
+<header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900">연속혈당측정기(CGM) 센서 외부막 최적화 보고서</h1>
+        <p class="mt-2 text-slate-500">글루코스 확산 제어의 한계 분석 및 이중 구조막 붕괴 극복 방안</p>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8 space-y-12">
+
+    <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">연구 개요</h2>
+        <p class="text-slate-700 leading-relaxed mb-4">
+            이 보고서는 연속혈당측정기(CGM)의 핵심 부품인 '외부막(Outer Membrane)'의 구조적 한계와 그에 따른 부작용을 심층 분석합니다. 외부막은 글루코스의 확산을 제어하고 신체 면역 반응으로부터 센서를 보호하는 매우 중요한 역할을 수행합니다.
+        </p>
+        <p class="text-slate-700 leading-relaxed">
+            본 문서는 채널 크기 분포에 따른 부작용 분석, 확산 속도 통제를 위한 조밀막 구조의 유체역학적 문제점, 그리고 이를 극복하기 위해 제안된 이중막 구조(Dual-layer) 도입 시 발생하는 구조 변형(붕괴) 문제를 다룹니다. 최종적으로 이 구조적 붕괴를 막을 수 있는 최신 공학적 해결 방안을 제시합니다.
+        </p>
+    </section>
+
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">1. 막 채널 크기 분포와 센서 성능의 상관관계</h2>
+            <p class="text-slate-600">
+                외부막의 기공(Channel) 크기가 일정하지 않고 편중될 경우 심각한 부작용이 발생합니다. 아래 버튼을 클릭하여 채널 분포 상태에 따른 성능 변화를 인터랙티브하게 확인하십시오.
+            </p>
         </div>
-    </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8 space-y-12">
-
-        <!-- Executive Summary Section -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
-            <h2 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">연구 배경 및 요약</h2>
-            <p class="text-slate-700 mb-4">
-                연속혈당측정기(CGM) 센서의 성능은 글루코스의 확산을 제어하는 <strong>외부막(Outer Membrane)</strong>의 정교함에 달려 있습니다. 본 보고서는 외부막의 기공(Channel) 크기 분포에 따른 부작용, 단일 조밀막의 유체역학적 한계를 분석합니다.
-            </p>
-            <p class="text-slate-700">
-                또한, 이러한 한계를 극복하기 위해 제시된 <strong>'이중막 구조(조밀하지 않고 두꺼운 1차막 + 얇고 조밀한 2차막)'</strong> 도입 시 발생하는 1차막 붕괴 현상의 원인을 규명하고, 이를 해결하기 위한 공학적/화학적 제조 기법을 조사하여 보고합니다.
-            </p>
-        </section>
-
-        <!-- Section 1: Channel Size Distribution -->
-        <section>
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">1. 채널 크기 분포에 따른 센서 특성 변화</h2>
-                <p class="text-slate-600">
-                    외부막에 형성되는 채널의 크기는 글루코스 투과도뿐만 아니라 방해 물질의 유입 및 생체 적합성에 지대한 영향을 미칩니다. 아래 탭을 클릭하여 주요 분포 형태에 따른 센서 특성 변화(시뮬레이션 데이터)를 확인하십시오.
-                </p>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex flex-wrap gap-3 mb-8" id="channel-buttons">
+                <button data-type="small" class="px-5 py-2.5 rounded-lg bg-rose-50 text-rose-700 font-semibold border border-rose-200 hover:bg-rose-100 transition-colors">소형 채널 과다 (노이즈 증가)</button>
+                <button data-type="ideal" class="px-5 py-2.5 rounded-lg bg-teal-600 text-white font-semibold shadow-md hover:bg-teal-700 transition-colors ring-2 ring-teal-600 ring-offset-2">이상적 분포 (최적화)</button>
+                <button data-type="large" class="px-5 py-2.5 rounded-lg bg-amber-50 text-amber-700 font-semibold border border-amber-200 hover:bg-amber-100 transition-colors">대형 채널 과다 (파울링 발생)</button>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <!-- Interactive Controls -->
-                <div class="flex flex-wrap gap-2 mb-6" id="chart-controls">
-                    <button data-type="small" class="px-4 py-2 rounded-md bg-rose-100 text-rose-700 font-medium hover:bg-rose-200 transition-colors border border-rose-200">소형 채널 과다 (문제점)</button>
-                    <button data-type="ideal" class="px-4 py-2 rounded-md bg-emerald-600 text-white font-medium shadow-md hover:bg-emerald-700 transition-colors">이상적 분포 (목표)</button>
-                    <button data-type="large" class="px-4 py-2 rounded-md bg-amber-100 text-amber-700 font-medium hover:bg-amber-200 transition-colors border border-amber-200">대형 채널 과다 (문제점)</button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                    <!-- Chart -->
-                    <div class="chart-container">
-                        <canvas id="channelChart"></canvas>
-                    </div>
-                    
-                    <!-- Dynamic Text Box -->
-                    <div id="channel-description" class="bg-slate-50 p-5 rounded-lg border border-slate-200 h-full flex flex-col justify-center">
-                        <h3 class="text-lg font-bold text-emerald-800 mb-3" id="desc-title">이상적 채널 분포</h3>
-                        <p class="text-slate-700 text-sm leading-relaxed" id="desc-body">
-                            글루코스가 통과하기 딱 적당한 크기의 채널이 주를 이룹니다. 방해 물질을 효과적으로 차단하면서도, 막 표면이 매끄러워 단백질 흡착이 최소화됩니다. 이상적인 확산 제어와 우수한 내구성을 보장합니다.
-                        </p>
-                        <ul class="mt-4 space-y-2 text-sm text-slate-600" id="desc-list">
-                            <li><span class="text-emerald-500 font-bold">✓</span> 우수한 글루코스 선택성</li>
-                            <li><span class="text-emerald-500 font-bold">✓</span> 바이오파울링 저항성 높음</li>
-                            <li><span class="text-emerald-500 font-bold">✓</span> 장기 안정성 확보</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 2: Flow Dynamics & Multi-layer Proposal -->
-        <section>
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-slate-900 mb-2">2. 조밀막의 유체역학적 한계와 이중막 구조의 딜레마</h2>
-                <p class="text-slate-600">
-                    확산 속도를 늦추기 위해 단일막을 조밀하게 설계할 경우 발생하는 흐름의 문제점과, 이를 해결하기 위한 이중막 제안, 그리고 그에 따른 치명적 부작용을 분석합니다.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Issue 1 -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                    <h3 class="font-bold text-lg text-rose-700 mb-4 flex items-center">
-                        <span class="mr-2 text-2xl">⚠</span> 단일 조밀막의 측면 흐름 차단
-                    </h3>
-                    <div class="flex-grow">
-                        <p class="text-sm text-slate-700 mb-4">
-                            막이 조밀하고 얇을 경우, 간질액 속 글루코스는 센서를 향한 <strong>수직 흐름(↓)</strong>만 발생합니다. 표면 일부에 단백질이 흡착(파울링)되면, 주변 글루코스가 오염 부위를 우회하는 <strong>측면 흐름(→)</strong>이 불가능해져 해당 부위 아래의 센서 반응이 즉각적으로 급감합니다.
-                        </p>
-                        <!-- CSS Diagram -->
-                        <div class="border-2 border-slate-300 rounded bg-slate-100 p-4 text-center mt-6">
-                            <div class="flex justify-around mb-2 text-blue-500 font-bold text-lg">
-                                <span>↓</span><span class="text-rose-500">❌</span><span>↓</span>
-                            </div>
-                            <div class="h-8 bg-slate-400 w-full mb-1 flex items-center justify-center text-xs text-white font-bold">얇고 조밀한 단일 외부막</div>
-                            <div class="h-8 bg-slate-800 w-full flex items-center justify-center text-xs text-white">센서 전극</div>
-                            <div class="mt-2 text-xs text-slate-500">오염 부위(가운데) 아래로 글루코스 도달 불가</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Issue 2 -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                    <h3 class="font-bold text-lg text-blue-700 mb-4 flex items-center">
-                        <span class="mr-2 text-2xl">⚡</span> 이중막 구조 제안과 변형 위험
-                    </h3>
-                    <div class="flex-grow">
-                        <p class="text-sm text-slate-700 mb-4">
-                            측면 흐름을 확보하기 위해 <strong>1차막(두껍고 엉성한 뼈대)</strong> 위에 <strong>2차막(얇고 조밀한 제어막)</strong>을 올리는 방식을 고안할 수 있습니다. 그러나 2차막 코팅 과정에서 용매나 물리적 힘에 의해 1차막 구조가 녹거나 붕괴되어 전체 흐름이 막히는 치명적 현상이 발생할 수 있습니다.
-                        </p>
-                         <!-- CSS Diagram -->
-                         <div class="border-2 border-slate-300 rounded bg-slate-100 p-4 text-center mt-6 relative overflow-hidden group">
-                            <div class="h-3 bg-blue-300 w-full mb-1 flex items-center justify-center text-[10px] text-blue-900 font-bold">2차막 (코팅 중)</div>
-                            <!-- Collapsing effect on hover to demonstrate deformation -->
-                            <div class="h-12 border-x border-b border-dashed border-slate-400 w-full mb-1 flex items-center justify-center text-xs text-slate-600 membrane-layer group-hover:h-2 group-hover:bg-slate-300 transition-all duration-700">
-                                1차막 (엉성함) <br> <span class="text-[10px] text-rose-500 font-bold mt-1 group-hover:block hidden">구조 붕괴! (흐름 차단)</span>
-                            </div>
-                            <div class="h-8 bg-slate-800 w-full flex items-center justify-center text-xs text-white">센서 전극</div>
-                            <div class="mt-2 text-xs text-slate-500 font-medium">※ 마우스를 올려 붕괴 현상 시뮬레이션 확인</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: Research & Solutions Report -->
-        <section class="bg-slate-800 rounded-xl shadow-lg p-6 md:p-8 text-slate-100">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-white mb-2 border-b border-slate-600 pb-3">3. 이중막 붕괴 문제 해결을 위한 제조 공정 연구 보고</h2>
-                <p class="text-slate-300 mt-4">
-                    1차막 위에 2차막을 코팅할 때 발생하는 하부 구조 변형 및 확산 경로 차단 문제를 극복하기 위해, 고분자 공학 및 표면 화학 기술 기반의 해결 방안 3가지를 도출하였습니다. 아래 각 항목을 클릭하여 상세 내용을 확인하십시오.
-                </p>
-            </div>
-
-            <div class="space-y-4" id="solution-accordion">
-                <!-- Solution 1 -->
-                <div class="border border-slate-600 rounded-lg overflow-hidden bg-slate-700">
-                    <button class="w-full px-6 py-4 text-left font-bold text-lg hover:bg-slate-600 flex justify-between items-center transition-colors focus:outline-none" onclick="toggleAccordion('sol1')">
-                        <span>방안 1. 직교 용매 시스템 (Orthogonal Solvent System) 도입</span>
-                        <span class="text-2xl text-slate-400 font-normal" id="icon-sol1">+</span>
-                    </button>
-                    <div class="hidden px-6 py-4 bg-slate-800 border-t border-slate-600 text-slate-300 text-sm leading-relaxed" id="content-sol1">
-                        <strong class="text-blue-300">원리:</strong> 고분자 코팅 시 각 막을 용해시키는 용매가 서로 겹치지 않도록 설계하는 방식입니다. 1차막을 구성하는 고분자가 전혀 녹지 않는 용매를 사용하여 2차막 고분자 용액을 제조합니다.<br><br>
-                        <strong class="text-blue-300">적용 방안:</strong> 예를 들어, 1차막을 수용성(Water-soluble) 고분자 네트워크로 형성하고 완전 건조시킨 후, 2차막은 톨루엔이나 헥산과 같은 비극성 유기 용매(Non-polar organic solvent)에 녹인 고분자를 사용하여 코팅합니다. 이 경우 2차 코팅액이 1차막 표면에 닿아도 1차막을 팽윤시키거나 용해시키지 않으므로 내부의 '엉성한' 다공성 뼈대가 그대로 유지됩니다.
-                    </div>
-                </div>
-
-                <!-- Solution 2 -->
-                <div class="border border-slate-600 rounded-lg overflow-hidden bg-slate-700">
-                    <button class="w-full px-6 py-4 text-left font-bold text-lg hover:bg-slate-600 flex justify-between items-center transition-colors focus:outline-none" onclick="toggleAccordion('sol2')">
-                        <span>방안 2. 1차막 표면 광가교 결합 (UV Surface Cross-linking)</span>
-                        <span class="text-2xl text-slate-400 font-normal" id="icon-sol2">+</span>
-                    </button>
-                    <div class="hidden px-6 py-4 bg-slate-800 border-t border-slate-600 text-slate-300 text-sm leading-relaxed" id="content-sol2">
-                        <strong class="text-blue-300">원리:</strong> 1차막을 코팅한 후, 화학적 결합을 통해 1차막 자체의 기계적 강도와 내용제성을 극대화시켜 2차 코팅 시 물리적 변형을 버티게 하는 방법입니다.<br><br>
-                        <strong class="text-blue-300">적용 방안:</strong> 1차 외부막 소재에 자외선(UV) 반응형 단량체를 포함시킵니다. 1차막 형성 후 제한된 시간 동안 UV를 조사하여 막의 골격 구조를 단단하게 굳힙니다(가교 결합). 이렇게 경화된 1차막은 매우 안정적인 3차원 망상 구조를 가지게 되어, 이후 어떤 용매나 압력으로 2차 조밀막을 그 위에 스핀 코팅하거나 딥 코팅하더라도 붕괴되지 않고 측면 흐름 공간을 확보할 수 있습니다.
-                    </div>
-                </div>
-
-                <!-- Solution 3 -->
-                <div class="border border-slate-600 rounded-lg overflow-hidden bg-slate-700">
-                    <button class="w-full px-6 py-4 text-left font-bold text-lg hover:bg-slate-600 flex justify-between items-center transition-colors focus:outline-none" onclick="toggleAccordion('sol3')">
-                        <span>방안 3. 희생 나노 입자 (Sacrificial Nano-particles) 템플릿 기법</span>
-                        <span class="text-2xl text-slate-400 font-normal" id="icon-sol3">+</span>
-                    </button>
-                    <div class="hidden px-6 py-4 bg-slate-800 border-t border-slate-600 text-slate-300 text-sm leading-relaxed" id="content-sol3">
-                        <strong class="text-blue-300">원리:</strong> 빈 공간(엉성한 구조) 자체가 압력에 취약하다는 점에 착안, 1차 코팅 시에는 속을 채워 단단하게 만들고 모든 코팅이 끝난 후 속을 비워내는 고도화된 제조 공정입니다.<br><br>
-                        <strong class="text-blue-300">적용 방안:</strong> 1차막 용액에 산(Acid)이나 특정 효소에만 녹는 구형의 나노 입자(예: 탄산칼슘 나노입자)를 다량 섞어 코팅합니다. 이 상태는 매우 견고하므로 2차막 코팅 시 전혀 변형이 일어나지 않습니다. 1, 2차 코팅이 모두 완벽하게 건조 및 결합된 후, 센서를 약산성 용액에 담급니다. 2차 조밀막을 통과한 용액이 1차막 내부의 나노 입자들만 선택적으로 녹여내어(희생층 제거), 결과적으로 1차막 자리에 거대한 다공성 채널(측면 흐름 경로)이 완벽하게 형성됩니다.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center">
-        <p class="text-slate-500 text-sm">본 문서는 사용자의 요청에 따라 제공된 문제 상황을 분석하고 해결 방안을 연구하여 작성된 인터랙티브 보고서입니다.</p>
-    </footer>
-
-    <!-- JavaScript Logic -->
-    <script>
-        // Data for the Chart representing different channel size distributions
-        const chartData = {
-            small: {
-                label: '소형 채널 과다',
-                data: [90, 20, 70], // Selectivity (high small molecule pass), Interference Resist (Low), Fouling Resist (High-smooth)
-                colors: ['#cbd5e1', '#ef4444', '#10b981'] 
-            },
-            ideal: {
-                label: '이상적 분포',
-                data: [95, 85, 80], // High glucose select, High Interfere Resist, High Fouling resist
-                colors: ['#10b981', '#10b981', '#10b981']
-            },
-            large: {
-                label: '대형 채널 과다',
-                data: [30, 40, 15], // Low select(everything passes), Mod Interfere, Very Low Fouling Resist(rough surface)
-                colors: ['#ef4444', '#f59e0b', '#ef4444']
-            }
-        };
-
-        const descriptions = {
-            small: {
-                title: "소형 채널 과다 구조의 부작용",
-                body: "채널 크기가 전반적으로 너무 작아 글루코스 투과율이 떨어집니다. 반면, 에탄올이나 아세트아미노펜과 같이 분자 크기가 글루코스보다 작은 방해 물질들은 상대적으로 쉽게 통과하여, 센서의 전류 반응에 심각한 오류(노이즈)를 발생시킵니다.",
-                list: '<li class="text-rose-600 font-bold">⚠ 소분자 방해 물질 산화 심각 (정확도 하락)</li><li class="text-slate-600">✓ 표면은 비교적 매끄러워 파울링은 적음</li><li class="text-rose-600 font-bold">⚠ 글루코스 자체의 확산도 저하</li>'
-            },
-            ideal: {
-                title: "글루코스 맞춤형 이상적 채널",
-                body: "글루코스 분자가 통과하기에 최적화된 크기의 채널이 대다수를 차지합니다. 큰 단백질의 유입을 막고 표면 굴곡을 최소화하면서도, 작은 방해 물질의 무분별한 유입 속도를 글루코스와 유사하거나 낮게 통제할 수 있습니다.",
-                list: '<li class="text-emerald-600 font-bold">✓ 우수한 글루코스 선택성 및 신호 비율</li><li class="text-emerald-600 font-bold">✓ 표면 평탄도 유지로 바이오파울링 지연</li><li class="text-emerald-600 font-bold">✓ 일관된 센서 수명 보장</li>'
-            },
-            large: {
-                title: "대형 채널 과다 구조의 부작용",
-                body: "채널이 너무 커서 확산 제어의 의미가 퇴색됩니다. 특히 큰 기공들로 인해 막 표면의 물리적 굴곡(Roughness)이 심해져, 생체 내 삽입 시 면역 반응에 의한 각종 단백질 및 세포 찌꺼기가 표면에 쉽게 들러붙습니다.",
-                list: '<li class="text-rose-600 font-bold">⚠ 심각한 바이오파울링 발생 (센서 수명 급감)</li><li class="text-rose-600 font-bold">⚠ 큰 분자량의 간섭 물질 유입 허용</li><li class="text-rose-600 font-bold">⚠ 확산 제어 실패로 인한 비선형적 전류 반응</li>'
-            }
-        };
-
-        // Initialize Chart
-        const ctx = document.getElementById('channelChart').getContext('2d');
-        let myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['글루코스 투과/선택성', '방해 물질 차단력', '바이오파울링 저항성'],
-                datasets: [{
-                    label: '성능 지수 (0-100)',
-                    data: chartData.ideal.data,
-                    backgroundColor: chartData.ideal.colors,
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: { display: true, text: '성능 점수 (높을수록 좋음)' }
-                    }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.raw + ' 점';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Handle Button Clicks for Chart Update
-        const buttons = document.querySelectorAll('#chart-controls button');
-        buttons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const type = e.target.getAttribute('data-type');
                 
-                // Update button styles
-                buttons.forEach(b => {
-                    b.classList.remove('ring-2', 'ring-offset-2');
-                    if(b.getAttribute('data-type') === 'ideal') {
-                        b.className = "px-4 py-2 rounded-md bg-emerald-100 text-emerald-700 font-medium hover:bg-emerald-200 transition-colors border border-emerald-200";
-                    } else if (b.getAttribute('data-type') === 'small') {
-                        b.className = "px-4 py-2 rounded-md bg-rose-100 text-rose-700 font-medium hover:bg-rose-200 transition-colors border border-rose-200";
-                    } else {
-                        b.className = "px-4 py-2 rounded-md bg-amber-100 text-amber-700 font-medium hover:bg-amber-200 transition-colors border border-amber-200";
-                    }
-                });
-                
-                // Highlight active button
-                if(type === 'ideal') {
-                    e.target.className = "px-4 py-2 rounded-md bg-emerald-600 text-white font-medium shadow-md transition-colors ring-2 ring-emerald-400 ring-offset-2";
-                } else if(type === 'small') {
-                    e.target.className = "px-4 py-2 rounded-md bg-rose-600 text-white font-medium shadow-md transition-colors ring-2 ring-rose-400 ring-offset-2";
-                } else {
-                    e.target.className = "px-4 py-2 rounded-md bg-amber-600 text-white font-medium shadow-md transition-colors ring-2 ring-amber-400 ring-offset-2";
-                }
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 h-full flex flex-col justify-center transition-all duration-300" id="info-panel">
+                    <h3 class="text-xl font-bold text-teal-800 mb-3" id="info-title">적정 크기의 이상적 채널</h3>
+                    <p class="text-slate-700 leading-relaxed mb-4" id="info-desc">
+                        글루코스 분자가 통과하기 적합한 크기의 채널이 균일하게 형성된 상태입니다. 표면이 매끄러워 단백질 흡착이 방지되며, 방해 물질의 투과를 효과적으로 통제합니다.
+                    </p>
+                    <div class="mt-auto space-y-2 text-sm font-medium" id="info-bullets">
+                        <p class="text-teal-700 flex items-center"><span>✓</span> <span class="ml-2">글루코스 선택적 산화 극대화</span></p>
+                        <p class="text-teal-700 flex items-center"><span>✓</span> <span class="ml-2">에탄올 등 소분자 방해물질 통제력 우수</span></p>
+                        <p class="text-teal-700 flex items-center"><span>✓</span> <span class="ml-2">면역 반응 최소화 및 바이오파울링 저항성 확보</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                // Update Chart
-                myChart.data.datasets[0].data = chartData[type].data;
-                myChart.data.datasets[0].backgroundColor = chartData[type].colors;
-                myChart.update();
+    <section>
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">2. 조밀막의 유체역학적 한계 및 이중막 붕괴 시뮬레이션</h2>
+            <p class="text-slate-600">
+                확산 속도를 늦추기 위해 얇고 조밀한 단일막을 사용할 경우 발생하는 측면 흐름 차단 문제와, 이를 극복하기 위한 이중막(1차 엉성한 막 + 2차 조밀막) 적용 시 발생하는 붕괴 현상을 시각화했습니다. 마우스를 올려 현상을 확인하십시오.
+            </p>
+        </div>
 
-                // Update Text Box
-                document.getElementById('desc-title').innerText = descriptions[type].title;
-                document.getElementById('desc-body').innerText = descriptions[type].body;
-                document.getElementById('desc-list').innerHTML = descriptions[type].list;
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-lg font-bold text-slate-800 mb-3 flex items-center">
+                    <span class="text-xl mr-2">1</span> 단일 조밀막의 한계 (측면 흐름 불가)
+                </h3>
+                <p class="text-sm text-slate-600 mb-6 h-20">
+                    단일 조밀막은 두께를 늘리기 어렵습니다. 표면에 단백질이 흡착되어 오염(파울링)될 경우, 간질액의 흐름이 수직(↓)으로만 발생하고 측면(→)으로 우회하지 못해 해당 부위 센서 전류 반응이 급감합니다.
+                </p>
+                <div class="bg-slate-100 border-2 border-slate-200 rounded-lg p-4 text-center">
+                    <div class="flex justify-around text-blue-500 font-bold mb-2">
+                        <span class="flow-animate">↓</span>
+                        <span class="text-rose-600 font-black text-xl">X</span>
+                        <span class="flow-animate">↓</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 mb-1 flex items-center justify-center relative">
+                        <div class="absolute top-[-10px] w-8 h-4 bg-rose-500 rounded-full opacity-80 text-[8px] text-white font-bold leading-4">오염</div>
+                    </div>
+                    <div class="w-full bg-slate-400 h-10 flex items-center justify-center text-xs text-white font-semibold">단일 조밀 외부막 (얇음)</div>
+                    <div class="w-full bg-amber-400 h-4 mt-1 flex items-center justify-center text-xs font-bold text-amber-900">센서 전극</div>
+                </div>
+            </div>
 
-                // Update text color based on type
-                const titleEl = document.getElementById('desc-title');
-                if(type === 'ideal') titleEl.className = "text-lg font-bold text-emerald-800 mb-3";
-                else if(type === 'small') titleEl.className = "text-lg font-bold text-rose-800 mb-3";
-                else titleEl.className = "text-lg font-bold text-amber-800 mb-3";
-            });
-        });
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group cursor-pointer hover:border-rose-300 hover:shadow-md transition-all">
+                <h3 class="text-lg font-bold text-rose-700 mb-3 flex items-center">
+                    <span class="text-xl mr-2">2</span> 이중막 도입에 따른 1차막 붕괴 위험
+                </h3>
+                <p class="text-sm text-slate-600 mb-6 h-20 group-hover:text-rose-800 transition-colors">
+                    측면 흐름을 유도하기 위해 조밀하지 않고 두꺼운 1차막을 뼈대로 삼고 얇은 2차 조밀막을 올리는 방식입니다. <strong class="text-rose-600">※ 그러나 2차 코팅 시 용매에 의해 1차막 뼈대가 녹아내려 완전히 막히는 현상이 발생합니다. (마우스 오버)</strong>
+                </p>
+                <div class="bg-slate-100 border-2 border-slate-200 rounded-lg p-4 text-center relative overflow-hidden">
+                    <div class="flex justify-around text-blue-500 font-bold mb-2 flow-animate">
+                        <span>↓</span><span>↓</span><span>↓</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 flex items-center justify-center text-[10px] text-white z-10 relative">2차막 (조밀)</div>
+                    <div class="w-full h-16 border-x-4 border-dashed border-slate-400 flex flex-col items-center justify-center text-xs text-slate-500 collapse-target relative">
+                        <span class="group-hover:hidden font-semibold">1차막 (조밀하지 않고 두꺼움)</span>
+                        <span class="hidden group-hover:block text-white font-bold text-[10px]">구조 붕괴 / 흐름 차단!</span>
+                    </div>
+                    <div class="w-full bg-amber-400 h-4 mt-1 flex items-center justify-center text-xs font-bold text-amber-900">센서 전극</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        // Initialize active state
-        document.querySelector('button[data-type="ideal"]').click();
+    <section class="bg-slate-900 rounded-2xl shadow-xl border border-slate-700 p-6 md:p-8 text-white">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-teal-400 mb-3">3. 이중막 붕괴 방지를 위한 첨단 제조 공정 연구 결과</h2>
+            <p class="text-slate-300">
+                1차막의 붕괴 및 흐름 제어 마비 문제를 극복하기 위해 물리화학적 특성을 활용한 세 가지 해결 방안을 조사하였습니다. 각 탭을 클릭하여 공정 원리를 확인하십시오.
+            </p>
+        </div>
 
-        // Accordion Logic for Solutions Section
-        function toggleAccordion(id) {
-            const content = document.getElementById('content-' + id);
-            const icon = document.getElementById('icon-' + id);
-            
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                icon.innerText = '-';
-            } else {
-                content.classList.add('hidden');
-                icon.innerText = '+';
+        <div class="space-y-4" id="accordion-container">
+            <div class="border border-slate-600 rounded-xl overflow-hidden bg-slate-800">
+                <button class="w-full px-6 py-4 text-left font-bold text-lg hover:bg-slate-700 flex justify-between items-center transition-colors accordion-btn" data-target="panel-1">
+                    <span>해결 방안 A : 직교 용매 시스템 (Orthogonal Solvents) 적용</span>
+                    <span class="text-teal-400 text-2xl font-light transform transition-transform">+</span>
+                </button>
+                <div class="hidden px-6 py-5 bg-slate-900 border-t border-slate-700" id="panel-1">
+                    <p class="text-slate-300 leading-relaxed mb-3">
+                        <strong class="text-teal-300">원리:</strong> 1차막 고분자와 2차막 고분자를 용해시키는 용매를 서로 완전히 반대되는 특성(예: 극성 vs 비극성)으로 설계합니다.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed">
+                        <strong class="text-teal-300">기대 효과:</strong> 2차막 코팅 용액이 1차막 표면에 닿더라도, 해당 용매가 1차막 뼈대를 전혀 녹이지 못하므로 구조 붕괴가 원천적으로 차단됩니다. 1차막의 빈 공간(기공)이 온전히 유지되어 간질액의 측면 흐름이 확보됩니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="border border-slate-600 rounded-xl overflow-hidden bg-slate-800">
+                <button class="w-full px-6 py-4 text-left font-bold text-lg hover:bg-slate-700 flex justify-between items-center transition-colors accordion-btn" data-target="panel-2">
+                    <span>해결 방안 B : 1차막의 광화학적 가교 (UV Cross-linking)</span>
+                    <span class="text-teal-400 text-2xl font-light transform transition-transform">+</span>
+                </button>
+                <div class="hidden px-6 py-5 bg-slate-900 border-t border-slate-700" id="panel-2">
+                    <p class="text-slate-300 leading-relaxed mb-3">
+                        <strong class="text-teal-300">원리:</strong> 1차막 코팅 직후 자외선(UV)을 조사하여 고분자 사슬 사이에 강력한 화학적 그물망(가교)을 형성시키는 기술입니다.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed">
+                        <strong class="text-teal-300">기대 효과:</strong> 광가교된 1차막은 물리적 강도가 극대화되고 불용성 3차원 망상 구조로 변합니다. 이후 2차 조밀막을 코팅할 때 어떠한 유기 용매나 물리적 압력이 가해져도 1차막의 변형이 일어나지 않습니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="border border-slate-600 rounded-xl overflow-hidden bg-slate-800">
+                <button class="w-full px-6 py-4 text-left font-bold text-lg hover:bg-slate-700 flex justify-between items-center transition-colors accordion-btn" data-target="panel-3">
+                    <span>해결 방안 C : 희생 템플릿 기법 (Sacrificial Porogen Method)</span>
+                    <span class="text-teal-400 text-2xl font-light transform transition-transform">+</span>
+                </button>
+                <div class="hidden px-6 py-5 bg-slate-900 border-t border-slate-700" id="panel-3">
+                    <p class="text-slate-300 leading-relaxed mb-3">
+                        <strong class="text-teal-300">원리:</strong> 1차 코팅 시 용해 가능한 미세 나노 입자(희생층)를 고분자와 섞어 '속이 꽉 찬' 상태로 코팅합니다. 그 위에 2차 코팅을 안정적으로 완료한 후, 특정 용액으로 나노 입자만 녹여내어 빈 공간을 만듭니다.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed">
+                        <strong class="text-teal-300">기대 효과:</strong> 2차 코팅 공정 중에는 1차막 내부가 나노 입자로 꽉 차 있어 절대 무너지지 않습니다. 공정 완료 후 입자만 빠져나가 완벽하게 통제된 크기의 측면 흐름용 채널을 생성할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-slate-100 border-t border-slate-200 mt-12 py-8 text-center">
+    <p class="text-slate-500 font-medium tracking-wide text-sm">Interactive Research Report &copy; 2024. Advanced Bio-Sensor Design.</p>
+</footer>
+
+<script>
+const rawData = {
+    ideal: {
+        label: "이상적 분포",
+        scores: [90, 85, 95],
+        color: "#0d9488",
+        title: "적정 크기의 이상적 채널",
+        desc: "글루코스 분자가 통과하기 적합한 크기의 채널이 균일하게 형성된 상태입니다. 표면이 매끄러워 단백질 흡착이 방지되며, 방해 물질의 투과를 효과적으로 통제합니다.",
+        bullets: [
+            { text: "글루코스 선택적 산화 극대화", color: "text-teal-700" },
+            { text: "에탄올 등 소분자 방해물질 통제력 우수", color: "text-teal-700" },
+            { text: "면역 반응 최소화 및 바이오파울링 저항성 확보", color: "text-teal-700" }
+        ],
+        panelClass: "bg-teal-50 border-teal-200",
+        titleClass: "text-teal-800"
+    },
+    small: {
+        label: "소형 채널 과다",
+        scores: [80, 40, 30],
+        color: "#e11d48",
+        title: "소분자 방해물질 산화 부작용",
+        desc: "크기가 작은 채널이 매우 많은 상태입니다. 글루코스 자체의 유입도 늦어지지만, 무엇보다 분자 크기가 작은 에탄올 등의 방해 물질 유입 비율이 기형적으로 높아집니다.",
+        bullets: [
+            { text: "간섭 물질에 의한 비정상적 산화 (노이즈 급증)", color: "text-rose-700" },
+            { text: "전류 반응 신뢰도 대폭 하락", color: "text-rose-700" },
+            { text: "표면은 매끄러운 편이나 센서로서의 정확성 상실", color: "text-rose-700" }
+        ],
+        panelClass: "bg-rose-50 border-rose-200",
+        titleClass: "text-rose-800"
+    },
+    large: {
+        label: "대형 채널 과다",
+        scores: [30, 20, 85],
+        color: "#d97706",
+        title: "바이오파울링 및 정확도 하락",
+        desc: "글루코스보다 매우 큰 사이즈의 채널이 많을 경우 확산 제어막의 의미가 퇴색됩니다. 외부 표면의 심한 굴곡으로 인해 생체 단백질이 쉽게 달라붙습니다.",
+        bullets: [
+            { text: "면역 반응 촉진 및 급격한 바이오파울링 발생", color: "text-amber-700" },
+            { text: "대형 방해 단백질 유입 허용", color: "text-amber-700" },
+            { text: "센서 감도 급감 및 수명 단축", color: "text-amber-700" }
+        ],
+        panelClass: "bg-amber-50 border-amber-200",
+        titleClass: "text-amber-800"
+    }
+};
+
+const ctx = document.getElementById('performanceChart').getContext('2d');
+let currentChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['글루코스 투과성/정확도', '방해물질 차단율', '바이오파울링 저항성'],
+        datasets: [{
+            label: '성능 지표 (100점 만점)',
+            data: rawData.ideal.scores,
+            backgroundColor: rawData.ideal.color,
+            borderRadius: 6,
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: '#e2e8f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleFont: { size: 14 },
+                bodyFont: { size: 14 },
+                padding: 12
             }
         }
-    </script>
+    }
+});
+
+const btns = document.querySelectorAll('#channel-buttons button');
+const infoPanel = document.getElementById('info-panel');
+const infoTitle = document.getElementById('info-title');
+const infoDesc = document.getElementById('info-desc');
+const infoBullets = document.getElementById('info-bullets');
+
+btns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const type = e.target.getAttribute('data-type');
+        const data = rawData[type];
+        
+        btns.forEach(b => {
+            b.classList.remove('ring-2', 'ring-offset-2', 'shadow-md');
+            if(b.getAttribute('data-type') === 'ideal') {
+                b.className = "px-5 py-2.5 rounded-lg bg-teal-50 text-teal-700 font-semibold border border-teal-200 hover:bg-teal-100 transition-colors";
+            } else if (b.getAttribute('data-type') === 'small') {
+                b.className = "px-5 py-2.5 rounded-lg bg-rose-50 text-rose-700 font-semibold border border-rose-200 hover:bg-rose-100 transition-colors";
+            } else {
+                b.className = "px-5 py-2.5 rounded-lg bg-amber-50 text-amber-700 font-semibold border border-amber-200 hover:bg-amber-100 transition-colors";
+            }
+        });
+        
+        if(type === 'ideal') {
+            e.target.className = "px-5 py-2.5 rounded-lg bg-teal-600 text-white font-semibold shadow-md transition-colors ring-2 ring-teal-600 ring-offset-2";
+        } else if(type === 'small') {
+            e.target.className = "px-5 py-2.5 rounded-lg bg-rose-600 text-white font-semibold shadow-md transition-colors ring-2 ring-rose-600 ring-offset-2";
+        } else {
+            e.target.className = "px-5 py-2.5 rounded-lg bg-amber-600 text-white font-semibold shadow-md transition-colors ring-2 ring-amber-600 ring-offset-2";
+        }
+
+        currentChart.data.datasets[0].data = data.scores;
+        currentChart.data.datasets[0].backgroundColor = data.color;
+        currentChart.update();
+
+        infoPanel.className = `p-6 rounded-xl border h-full flex flex-col justify-center transition-all duration-300 ${data.panelClass}`;
+        infoTitle.className = `text-xl font-bold mb-3 ${data.titleClass}`;
+        infoTitle.innerText = data.title;
+        infoDesc.innerText = data.desc;
+        
+        infoBullets.innerHTML = '';
+        data.bullets.forEach(bullet => {
+            const p = document.createElement('p');
+            p.className = `${bullet.color} flex items-center font-bold`;
+            p.innerHTML = `<span>⚠</span> <span class="ml-2">${bullet.text}</span>`;
+            if (type === 'ideal') p.innerHTML = `<span>✓</span> <span class="ml-2">${bullet.text}</span>`;
+            infoBullets.appendChild(p);
+        });
+    });
+});
+
+const accBtns = document.querySelectorAll('.accordion-btn');
+accBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const icon = btn.querySelector('span:last-child');
+        
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            btn.classList.add('bg-slate-700');
+            icon.style.transform = 'rotate(45deg)';
+        } else {
+            content.classList.add('hidden');
+            btn.classList.remove('bg-slate-700');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    });
+});
+</script>
 </body>
 </html>
